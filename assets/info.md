@@ -1,1 +1,4 @@
-
+Adicionar Imagens Ilustrativas
+Aumentar a Fonte
+Espinha de Peixe
+5 Porquês
