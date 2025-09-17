@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WEGsecurity — Apresentação (Mac style)</title>
+  <style>
+    /* ===== Visual "mais Mac": tipografia SF, vidro leve, azul sistema ===== */
+    :root{
+      --bg:#ffffff;
+      --ink:#0a0a0a;
+      --muted:#6b6b6b;
+      --accent:#007aff;      /* macOS/iOS blue */
+      --brand:#e30613;       /* mantém vermelho WEGsecurity para títulos */
+      --line:#ececec;
+      --shadow:0 1px 2px rgba(0,0,0,.06), 0 4px 14px rgba(0,0,0,.08);
+      --radius:12px;
+    }
+    html,body{height:100%; margin:0}
+    body{
+      font:16.5px/1.55 ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, "Noto Sans", sans-serif;
+      color:var(--ink); background:var(--bg); -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    }
+    h1,h2,h3{margin:0 0 .5em; font-weight:800; letter-spacing:-.02em}
+    h1{font-size: clamp(34px, 6vw, 52px); line-height:1.04}
+    h2{font-size: clamp(22px, 3.4vw, 32px)}
+    p{margin:.45em 0}
+    ul{margin:.35em 0; padding-left:1.1em}
+    li{margin:.28em 0}
+    strong{font-weight:800}
+    .accent{color:var(--brand)}
+    .muted{color:var(--muted)}
+
+    /* Slides */
+    .deck{position:relative}
+    .slide{height:100vh; width:100vw; display:flex; align-items:center; justify-content:center;}
+    .wrap{width:min(1080px, 88vw); padding:0 4vw}
+
+    /* Layouts */
+    .row{display:grid; grid-template-columns:1.3fr .9fr; gap:24px}
+
+    /* Divisor */
+    .divider{height:2px; background:var(--ink); width:56px; margin:18px 0; opacity:.9}
+
+    /* HUD & marca — vidro leve */
+    .hud{
+      position:fixed; top:10px; right:16px; z-index:50; font-weight:800; letter-spacing:.3px;
+      color:var(--ink); background:rgba(255,255,255,.7); border:1px solid var(--line); padding:6px 10px;
+      backdrop-filter:saturate(180%) blur(8px); border-radius:10px; box-shadow:var(--shadow);
+    }
+    .brand{position:fixed; top:10px; left:16px; z-index:50; display:flex; align-items:center; gap:10px; font-weight:900; letter-spacing:.2px}
+    .brand .mark{
+      display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px;
+      border:2px solid var(--ink); color:var(--ink); border-radius:9px; box-shadow:var(--shadow); background:#fff;
+    }
+
+    /* Controles */
+    .controls{position:fixed; bottom:18px; right:18px; display:flex; gap:8px; z-index:50}
+    .btn{
+      border:1px solid var(--accent); background:var(--accent); color:#fff; padding:9px 13px; font-weight:700;
+      transition:transform .12s ease, filter .2s ease; border-radius:var(--radius); box-shadow:var(--shadow)
+    }
+    .btn:hover{transform:translateY(-1px)}
+    .btn:active{transform:translateY(0); filter:brightness(.96)}
+    .btn.ghost{background:#fff; color:var(--ink); border-color:#d0d0d0}
+
+    /* Overview */
+    .overview{position:fixed; inset:0; background:rgba(0,0,0,.75); display:none; align-items:center; justify-content:center; z-index:60}
+    .overview.open{display:flex}
+    .grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px; width:min(1200px,92vw)}
+    .thumb{background:#fff; border:1px solid var(--line); height:180px; overflow:hidden; cursor:pointer; border-radius:10px}
+    .thumb .mini{transform:scale(.25); transform-origin: top left; width:400%; height:400%}
+
+    /* Cartões de número (KPIs) */
+    .cards{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+    .card{border:1px solid var(--line); padding:14px; border-radius:10px; box-shadow:var(--shadow)}
+    .card h3{font-size:18px; margin:0 0 6px}
+    .num{font-size:34px; font-weight:900}
+
+    /* Áreas de gráfico */
+    .charts{display:grid; grid-template-columns:1.5fr 1fr; gap:16px}
+    .chart{border:1px solid var(--line); padding:12px; border-radius:10px; box-shadow:var(--shadow)}
+    .chart h3{font-size:16px; margin:0 0 8px}
+    svg{display:block; width:100%; height:280px; font-family:-apple-system, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif}
+    .legend{display:flex; gap:14px; font-size:13px; margin-top:6px}
+    .sw{display:inline-block; width:12px; height:12px; background:var(--ink); margin-right:6px; border-radius:3px}
+    .sw.red{background:var(--brand)}
+
+    /* ===== EFEITOS (textos e slides) ===== */
+    .slide .reveal{opacity:0; transform:translateY(12px); transition:opacity .6s ease, transform .6s ease}
+    .slide.in .reveal{opacity:1; transform:none}
+    .slide::before{content:""; position:absolute; inset:0; background:linear-gradient(0deg, rgba(0,0,0,0) 85%, rgba(0,0,0,.06) 100%); opacity:0; pointer-events:none; transition:opacity .6s ease}
+    .slide.in::before{opacity:1}
+
+    @media print{ .hud,.brand,.controls,.overview{display:none!important} .slide{page-break-after:always} body{margin:0} }
+  </style>
+</head>
+<body>
+  <div class="brand"><span class="mark">WS</span> WEGsecurity</div>
+  <div class="hud" id="hud">1 / 12</div>
+
+  <div class="deck" id="deck">
+    <!-- CAPA -->
+    <section class="slide" data-title="Capa">
+      <div class="wrap">
+        <div class="row">
+          <div>
+            <div class="muted reveal">Protocolo de Cibersegurança — SCADA (Fábrica de Alimentos)</div>
+            <h1 class="reveal"><span class="accent" style="color:var(--brand)">WEGsecurity</span> — Protocolo de Cibersegurança</h1>
+            <div class="divider reveal"></div>
+            <p class="muted reveal">
+              Objetivo: <strong>acabar com conta compartilhada</strong>, exigir <strong>dupla aprovação</strong> para mudanças críticas,
+              ter <strong>logs que não podem ser apagados</strong>, rede da fábrica separada da do escritório,
+              e um <strong>processo simples de mudança</strong>.
+            </p>
+            <p class="reveal"><strong>Autores:</strong> Ryhan • Brian • Vinicius</p>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:center" class="reveal">
+            <img src="https://i.postimg.cc/yNgBmfNt/Design-sem-nome.png" alt="Livrete WEGsecurity" style="max-width:360px; width:100%; border:1px solid var(--line); border-radius:10px"/>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DIAGNÓSTICO -->
+    <section class="slide" id="diagnostico" data-title="Diagnóstico">
+      <div class="wrap">
+        <h2 class="reveal">1) Diagnóstico — O que aconteceu e por quê</h2>
+        <div class="divider reveal"></div>
+        <p class="muted reveal">Mudanças sem dono em ponto crítico; registro incompleto.</p>
+        <ul>
+          <li class="reveal">Conta compartilhada → não dá para saber quem mudou.</li>
+          <li class="reveal">Mudanças críticas sem dupla checagem.</li>
+          <li class="reveal">Sem registro do antes/depois e da estação usada.</li>
+          <li class="reveal">Regras frouxas de senha; passagem de turno fraca.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- AÇÕES IMEDIATAS -->
+    <section class="slide" id="acoes" data-title="Ações 0–72h">
+      <div class="wrap">
+        <h2 class="reveal">2) Ações imediatas (0–72h)</h2>
+        <div class="divider reveal"></div>
+        <h3 class="reveal">0–8h — Conter & preservar evidências</h3>
+        <ul>
+          <li class="reveal">Congelar parâmetros/receita e parar a linha impactada.</li>
+          <li class="reveal">Exportar logs (SCADA/historian/PLC/SO) + snapshots.</li>
+          <li class="reveal">Desativar a conta compartilhada; logins individuais temporários.</li>
+          <li class="reveal">Quarentena dos lotes; Qualidade decide destino.</li>
+        </ul>
+        <h3 class="reveal">8–24h — Comunicação & recuperação</h3>
+        <ul>
+          <li class="reveal">Abrir incidente; notificar gestão/qualidade; cronologia.</li>
+          <li class="reveal">Reverter alterações não aprovadas (receita “padrão ouro”).</li>
+          <li class="reveal">Rastrear provável autor (CCTV, crachá, escala, estação).</li>
+        </ul>
+        <h3 class="reveal">24–72h — Após estabilizar</h3>
+        <ul>
+          <li class="reveal">5 Porquês + Espinha de Peixe (causa-raiz) e plano de reentrega.</li>
+          <li class="reveal">Calcular perdas e medidas disciplinares proporcionais.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- PLANOS -->
+    <section class="slide" id="plano1" data-title="Plano — Identidade & Acesso">
+      <div class="wrap">
+        <h2 class="reveal">3) Plano (30–90 dias) — Identidade & Acesso</h2>
+        <div class="divider reveal"></div>
+        <ul>
+          <li class="reveal">1 pessoa = 1 conta (termo de responsabilidade).</li>
+          <li class="reveal">Permissões por perfil (Operador, Manutenção, Engenharia, Admin).</li>
+          <li class="reveal">Dupla aprovação para mudanças críticas.</li>
+          <li class="reveal">2 fatores, bloqueio automático e rotação de senhas.</li>
+          <li class="reveal">Cofre de senhas e gravação de sessão para alto risco.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="slide" id="plano2" data-title="Plano — Auditoria & Config">
+      <div class="wrap">
+        <h2 class="reveal">Plano — Auditoria & Configuração</h2>
+        <div class="divider reveal"></div>
+        <ul>
+          <li class="reveal">Logs imutáveis: quem, onde, quando e antes→depois.</li>
+          <li class="reveal">Alarme para mudança não autorizada e “modo engenharia” em produção.</li>
+          <li class="reveal">Controle de versão das receitas e configurações.</li>
+          <li class="reveal">Backups + testes periódicos de restauração.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="slide" id="plano3" data-title="Plano — Arquitetura">
+      <div class="wrap">
+        <h2 class="reveal">Plano — Arquitetura e acesso de engenharia</h2>
+        <div class="divider reveal"></div>
+        <ul>
+          <li class="reveal">Operação “somente leitura”; ajustes via servidor intermediário.</li>
+          <li class="reveal">Rede da fábrica segmentada; estações de engenharia isoladas.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- PROCESSOS -->
+    <section class="slide" id="processos" data-title="Processos & Cultura">
+      <div class="wrap">
+        <h2 class="reveal">4) Processos & Cultura</h2>
+        <div class="divider reveal"></div>
+        <ul>
+          <li class="reveal">Política de credenciais clara (proibição e sanções).</li>
+          <li class="reveal">Processo simples de mudança (risco, janela, plano de volta, aprovações).</li>
+          <li class="reveal">Passagem de turno padronizada; treinamento trimestral por perfil.</li>
+          <li class="reveal">Governança: responsáveis definidos e auditorias programadas.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- KPIs -->
+    <section class="slide" id="kpis" data-title="KPIs & testes">
+      <div class="wrap">
+        <h2 class="reveal">5) Como verificar — KPIs & testes</h2>
+        <div class="divider reveal"></div>
+        <div class="cards">
+          <div class="card reveal"><h3>Contas individuais</h3><div class="num" id="n1">0%</div><div class="muted">Meta: 100% até D+30</div></div>
+          <div class="card reveal"><h3>Mudanças com 2 aprovações</h3><div class="num" id="n2">0%</div><div class="muted">Meta: ≥95% até D+60</div></div>
+          <div class="card reveal"><h3>Acessos via conta genérica</h3><div class="num" id="n3">0</div><div class="muted">Meta: 0 até D+30</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DADOS -->
+    <section class="slide" id="dados" data-title="Dados (hipotéticos)">
+      <div class="wrap">
+        <h2 class="reveal">6) Dados — evolução (hipotéticos)</h2>
+        <div class="divider reveal"></div>
+        <p class="muted reveal">Exemplo didático (não são dados reais).</p>
+        <div class="charts reveal">
+          <div class="chart">
+            <h3>Linha do tempo — Adoção de controles</h3>
+            <svg id="line"></svg>
+            <div class="legend"><span><i class="sw red"></i>Contas individuais</span><span><i class="sw"></i>2 aprovações</span></div>
+          </div>
+          <div class="chart">
+            <h3>Perfis de acesso (%)</h3>
+            <svg id="donut"></svg>
+          </div>
+        </div>
+        <div class="chart reveal" style="margin-top:16px">
+          <h3>Mudanças não autorizadas por marco</h3>
+          <svg id="bars"></svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- GLOSSÁRIO -->
+    <section class="slide" id="siglas" data-title="Glossário (opcional)">
+      <div class="wrap">
+        <h2 class="reveal">7) Glossário (se precisar)</h2>
+        <div class="divider reveal"></div>
+        <ul>
+          <li class="reveal"><strong>SCADA/HMI</strong> — supervisão e telas de operação.</li>
+          <li class="reveal"><strong>PLC</strong> — controlador lógico programável.</li>
+          <li class="reveal"><strong>“Modo engenharia”</strong> — acesso para ajustes técnicos.</li>
+          <li class="reveal"><strong>Logs imutáveis</strong> — registros que não podem ser apagados.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ENTREGÁVEIS -->
+    <section class="slide" id="entregaveis" data-title="Entregáveis & Anexos">
+      <div class="wrap">
+        <h2 class="reveal">8) Entregáveis & Anexos</h2>
+        <div class="divider reveal"></div>
+        <ul>
+          <li class="reveal">Política de credenciais + Matriz de permissões por perfil.</li>
+          <li class="reveal">Procedimento de mudança + formulário padrão.</li>
+          <li class="reveal">Livro de Turno (modelo) e POP de handover.</li>
+          <li class="reveal">Plano de logs imutáveis & retenção; Playbook de Incidente (0–72h).</li>
+          <li class="reveal">Checklist de auditoria + relatório mensal de KPIs.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- OBRIGADO -->
+    <section class="slide" id="obrigado" data-title="Obrigado">
+      <div class="wrap" style="text-align:center">
+        <h1 class="reveal">Obrigado!</h1>
+        <div class="divider reveal" style="margin:18px auto"></div>
+        <p class="reveal">Dúvidas ou sugestões? Fale com a equipe WEGsecurity.</p>
+        <p class="muted reveal">Use ← → para navegar • G abre a visão geral • P imprime em PDF</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- Controles -->
+  <div class="controls">
+    <button class="btn ghost" id="prev">←</button>
+    <button class="btn" id="next">→</button>
+  </div>
+
+  <!-- Overview grid -->
+  <div class="overview" id="overview">
+    <div class="grid" id="thumbs"></div>
+  </div>
+
+  <script>
+    // ===== Navegação de slides =====
+    const deck=document.getElementById('deck');
+    const slides=[...deck.querySelectorAll('.slide')];
+    let idx=0;
+    function markIn(i){
+      slides.forEach((s,k)=>s.classList.toggle('in', k===i));
+    }
+    function show(i){
+      idx=Math.max(0, Math.min(i, slides.length-1));
+      scrollTo({top:slides[idx].offsetTop, behavior:'smooth'});
+      document.getElementById('hud').textContent=`${idx+1} / ${slides.length}`;
+      markIn(idx);
+    }
+    function next(){ show(idx+1); }
+    function prev(){ show(idx-1); }
+    document.getElementById('next').onclick=next;
+    document.getElementById('prev').onclick=prev;
+    document.addEventListener('keydown', (e)=>{
+      const k=e.key.toLowerCase();
+      if(['arrowright','pagedown',' '].includes(k)){ e.preventDefault(); next(); }
+      if(['arrowleft','pageup'].includes(k)){ e.preventDefault(); prev(); }
+      if(k==='g'){ toggleOverview(); }
+      if(k==='b'){ document.body.style.background = document.body.style.background ? '' : '#000'; }
+      if(k==='home'){ show(0); }
+      if(k==='end'){ show(slides.length-1); }
+      if(k==='p'){ window.print(); }
+    });
+    window.addEventListener('load',()=>{ show(0); buildThumbs(); });
+    window.addEventListener('scroll',()=>{
+      const y=window.scrollY;
+      const j=slides.findIndex(s=>s.offsetTop<=y+10 && s.offsetTop+s.offsetHeight>y+10);
+      if(j>=0 && j!==idx){ idx=j; document.getElementById('hud').textContent=`${idx+1} / ${slides.length}`; markIn(idx); }
+    });
+
+    // ===== Overview (G) =====
+    const overlay=document.getElementById('overview');
+    const thumbs=document.getElementById('thumbs');
+    function buildThumbs(){
+      thumbs.innerHTML='';
+      slides.forEach((s,i)=>{
+        const t=document.createElement('div');
+        t.className='thumb';
+        const mini=s.cloneNode(true);
+        mini.classList.add('mini');
+        t.appendChild(mini);
+        t.onclick=()=>{ toggleOverview(false); show(i); };
+        thumbs.appendChild(t);
+      });
+    }
+    function toggleOverview(force){ if(force===false){ overlay.classList.remove('open'); return; } overlay.classList.toggle('open'); }
+
+    // ===== KPIs animados (hipotéticos) =====
+    function animate(el, end, suffix=''){
+      const start=0; const dur=900; let t0=null;
+      const step=(t)=>{ if(!t0) t0=t; const p=Math.min((t-t0)/dur,1);
+        el.textContent = (suffix==='%'? Math.round(start+(end-start)*p): Math.round(start+(end-start)*p)) + suffix;
+        if(p<1) requestAnimationFrame(step);
+      }; requestAnimationFrame(step);
+    }
+    window.addEventListener('load',()=>{
+      animate(document.getElementById('n1'), 100, '%');
+      animate(document.getElementById('n2'), 95, '%');
+      animate(document.getElementById('n3'), 0, '');
+    });
+
+    // ===== Gráficos SVG (dados hipotéticos) — com grades e rótulos legíveis =====
+    const labels=['D0','D+30','D+60','D+90'];
+    const contasInd=[34,78,96,100];
+    const duasApr=[5,68,85,96];
+    const naoAut=[3,1,0,0];
+    const perfis=[{label:'Operador', val:60},{label:'Manutenção', val:15},{label:'Engenharia', val:15},{label:'Admin', val:10}];
+
+    function lineChart(el, seriesArr){
+      const w=el.clientWidth||600, h=280, pad=40;
+      const xs=(w-pad*2)/(labels.length-1), ys=(h-pad*2)/100;
+      const svg = d3(el,w,h);
+      // eixos
+      svg.line(pad,h-pad, w-pad,h-pad, '#000');
+      svg.line(pad,pad, pad,h-pad, '#000');
+      // grade horizontal (cada 25%)
+      for(let v=0; v<=100; v+=25){
+        const y=h-pad - v*ys;
+        svg.line(pad,y, w-pad,y, v===0?'#000':'#e9e9e9');
+        svg.text(v+'%', pad-8, y+4, 'end', '12px');
+      }
+      // ticks x
+      labels.forEach((lb,i)=>{
+        const x=pad+i*xs;
+        svg.text(lb, x, h-pad+18, 'middle', '12px');
+        svg.line(x, h-pad-4, x, h-pad+4, '#000');
+      });
+      // séries
+      seriesArr.forEach((s)=>{
+        let d=""; s.data.forEach((v,i)=>{ const x=pad+i*xs; const y=h-pad - v*ys; d += (i?"L":"M")+x+","+y; });
+        const path=svg.path(d, s.color, 2);
+        s.data.forEach((v,i)=>{ const x=pad+i*xs; const y=h-pad - v*ys; svg.circle(x,y,3,s.color); });
+        // anima o traço
+        const len=path.getTotalLength(); path.style.strokeDasharray=len; path.style.strokeDashoffset=len;
+        requestAnimationFrame(()=>{ path.style.transition='stroke-dashoffset .9s ease'; path.style.strokeDashoffset='0'; });
+      });
+    }
+    function barChart(el, data){
+      const w=el.clientWidth||600, h=280, pad=40; const bw=28;
+      const gap=((w-pad*2)-(bw*data.length))/(data.length-1);
+      const max=Math.max(...data,5); const ys=(h-pad*2)/max;
+      const svg=d3(el,w,h);
+      // eixos + grade
+      svg.line(pad,h-pad, w-pad,h-pad, '#000');
+      svg.line(pad,pad, pad,h-pad, '#000');
+      for(let v=0; v<=max; v++){
+        const y=h-pad - v*ys;
+        if(v%1===0 && v!==0) svg.line(pad,y, w-pad,y, '#e9e9e9');
+      }
+      data.forEach((v,i)=>{
+        const x=pad+i*(bw+gap); const y=h-pad - v*ys;
+        const r=svg.rect(x, h-pad, bw, 0, i===0? '#e30613':'#111', true);
+        svg.text(labels[i], x+bw/2, h-pad+18, 'middle','12px');
+        svg.text(v, x+bw/2, y-6, 'middle','12px');
+        // anima altura
+        requestAnimationFrame(()=>{
+          r.setAttribute('y', y); r.setAttribute('height', v*ys);
+        });
+      });
+    }
+
+    // ===== Donut novo (anéis com stroke, centrado) =====
+    function donutChart(el, parts){
+      const w=el.clientWidth||480, h=280;
+      const r = Math.min(w,h)/2 - 16;   // raio externo
+      const t = Math.max(14, r*0.34);   // espessura do anel
+      const rc = r - t/2;               // raio do caminho (meio do anel)
+      const cx=w/2, cy=h/2;
+
+      const svg=d3(el,w,h);
+      const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+      g.setAttribute('transform',`translate(${cx},${cy})`);
+      svg.svg.appendChild(g);
+
+      let ang=-Math.PI/2;
+      const total=parts.reduce((a,b)=>a+b.val,0);
+      const cols=['#e30613','#111','#666','#bbb'];
+
+      parts.forEach((p,i)=>{
+        const a = (p.val/total)*Math.PI*2;
+        const x1 = rc*Math.cos(ang);
+        const y1 = rc*Math.sin(ang);
+        const x2 = rc*Math.cos(ang+a);
+        const y2 = rc*Math.sin(ang+a);
+        const large = a>Math.PI?1:0;
+        const d = `M ${x1} ${y1} A ${rc} ${rc} 0 ${large} 1 ${x2} ${y2}`;
+        const seg = document.createElementNS('http://www.w3.org/2000/svg','path');
+        seg.setAttribute('d', d);
+        seg.setAttribute('fill', 'none');
+        seg.setAttribute('stroke', cols[i%cols]);
+        seg.setAttribute('stroke-width', t);
+        seg.setAttribute('stroke-linecap', 'butt');
+        seg.setAttribute('stroke-linejoin', 'round');
+        seg.style.filter = 'drop-shadow(0 1px 2px rgba(0,0,0,.06))';
+        g.appendChild(seg);
+
+        // animação do traço
+        const len = seg.getTotalLength();
+        seg.style.strokeDasharray = len;
+        seg.style.strokeDashoffset = len;
+        requestAnimationFrame(()=>{
+          seg.style.transition = 'stroke-dashoffset .8s ease';
+          seg.style.strokeDashoffset = '0';
+        });
+
+        ang += a;
+      });
+
+      // valor total ao centro
+      const totalTxt = document.createElementNS('http://www.w3.org/2000/svg','text');
+      totalTxt.textContent = 'Perfis';
+      totalTxt.setAttribute('x','0'); totalTxt.setAttribute('y','-4');
+      totalTxt.setAttribute('text-anchor','middle'); totalTxt.setAttribute('font-size','14px'); totalTxt.setAttribute('fill','#555');
+      g.appendChild(totalTxt);
+
+      const subTxt = document.createElementNS('http://www.w3.org/2000/svg','text');
+      subTxt.textContent = parts.map(p=>p.val).reduce((a,b)=>a+b,0) + '%';
+      subTxt.setAttribute('x','0'); subTxt.setAttribute('y','18');
+      subTxt.setAttribute('text-anchor','middle'); subTxt.setAttribute('font-size','18px'); subTxt.setAttribute('font-weight','800');
+      g.appendChild(subTxt);
+
+      // legenda externa
+      let y=cy+r+18;
+      parts.forEach((p,i)=>{
+        svg.rect(20,y-10,12,12, cols[i%cols], true);
+        svg.text(`${p.label}: ${p.val}%`, 40, y, 'start','12px');
+        y+=16;
+      });
+    }
+
+    // mini lib svg
+    function d3(el,w,h){
+      const ns='http://www.w3.org/2000/svg';
+      const svg=document.createElementNS(ns,'svg');
+      svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+      el.innerHTML=''; el.appendChild(svg);
+      function path(d, color, width=1, fill=false){ const p=document.createElementNS(ns,'path'); p.setAttribute('d',d); if(fill){ p.setAttribute('fill',color);} else { p.setAttribute('fill','none'); p.setAttribute('stroke',color); p.setAttribute('stroke-width',width);} svg.appendChild(p); return p; }
+      function line(x1,y1,x2,y2,color){ const l=document.createElementNS(ns,'line'); l.setAttribute('x1',x1); l.setAttribute('y1',y1); l.setAttribute('x2',x2); l.setAttribute('y2',y2); l.setAttribute('stroke',color); svg.appendChild(l); return l; }
+      function circle(x,y,r,color,fill=false){ const c=document.createElementNS(ns,'circle'); c.setAttribute('cx',x); c.setAttribute('cy',y); c.setAttribute('r',r); if(fill){ c.setAttribute('fill',color);} else { c.setAttribute('fill','#fff'); c.setAttribute('stroke',color);} svg.appendChild(c); return c; }
+      function rect(x,y,w,h,color,fill=false){ const r=document.createElementNS(ns,'rect'); r.setAttribute('x',x); r.setAttribute('y',y); r.setAttribute('width',w); r.setAttribute('height',h); if(fill){ r.setAttribute('fill',color);} else { r.setAttribute('fill',color); } svg.appendChild(r); return r; }
+      function text(t,x,y,anchor='start',size='14px'){ const tx=document.createElementNS(ns,'text'); tx.textContent=t; tx.setAttribute('x',x); tx.setAttribute('y',y); tx.setAttribute('text-anchor',anchor); tx.setAttribute('font-size',size); svg.appendChild(tx); return tx; }
+      return {svg, path, line, circle, rect, text};
+    }
+
+    // render charts quando o slide entra em vista
+    const obs=new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          if(e.target.id==='dados'){
+            lineChart(document.getElementById('line'), [{data:contasInd, color:'#e30613'},{data:duasApr, color:'#111'}]);
+            donutChart(document.getElementById('donut'), perfis);
+            barChart(document.getElementById('bars'), naoAut);
+            obs.disconnect();
+          }
+        }});
+    }, {threshold:0.4});
+    obs.observe(document.getElementById('dados'));
+  </script>
+</body>
+</html>
