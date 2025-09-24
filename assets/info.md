@@ -1,4 +1,4 @@
 - Adicionar Imagens Ilustrativas
-- Aumentar a Fonte
+- Aumentar a Fonte - Feito
 - Espinha de Peixe
 - 5 Porquês
